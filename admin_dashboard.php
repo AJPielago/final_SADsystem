@@ -92,8 +92,6 @@ $result = $conn->query($sql);
         <?php else: ?>
             <div class="alert alert-info">No pending pickup requests found.</div>
         <?php endif; ?>
-
-        <?php $conn->close(); ?>
     </div>
 </div>
 

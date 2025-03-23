@@ -35,7 +35,6 @@ $stmt->execute();
 $result = $stmt->get_result();
 $pickups = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
-$conn->close();
 ?>
 
 <div class="container mt-4">
@@ -44,12 +43,13 @@ $conn->close();
     <?php if (empty($pickups)): ?>
         <div class="alert alert-info">No pickups assigned for today.</div>
     <?php else: ?>
-        <div class="table-responsive">
+       <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Resident Name</th>
                         <th>Building</th>
+                        <th>Time</th>
                         <th>Location</th>
                         <th>Actions</th>
                     </tr>

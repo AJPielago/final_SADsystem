@@ -5,14 +5,14 @@ header('Content-Type: application/json');
 
 $approved_pickups = [];
 
-$sql = "SELECT ps.schedule_id, ps.request_id, ps.collection_date, ps.collection_time, 
+$sql = "SELECT pr.request_id, pr.created_at, 
                b.building_name, pr.latitude, pr.longitude, u.full_name AS resident_name
-        FROM pickup_schedules ps
-        JOIN pickuprequests pr ON ps.request_id = pr.request_id
+        FROM pickuprequests pr
         JOIN users u ON pr.user_id = u.user_id
         JOIN buildings b ON pr.building_id = b.building_id
-        WHERE ps.collection_date = CURDATE() 
-        AND pr.status = 'approved'";  // Only fetch approved requests for today
+        WHERE DATE(pr.created_at) = CURDATE()
+        AND pr.status = 'approved'
+        AND pr.request_id NOT IN (SELECT request_id FROM reschedule_requests WHERE status = 'Pending')";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute();

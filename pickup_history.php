@@ -49,13 +49,16 @@ if (!$stmt_completed) {
 $stmt_completed->execute();
 $result_completed = $stmt_completed->get_result();
 
-// Fetch pending pickups with building name
-$sql_pending = "SELECT pr.request_id, pr.status, pr.created_at, pr.building_id, b.building_name, 
-                pr.latitude, pr.longitude, u.full_name as resident_name
-                FROM pickuprequests pr 
-                LEFT JOIN buildings b ON pr.building_id = b.building_id
-                LEFT JOIN users u ON pr.user_id = u.user_id
-                WHERE pr.status = 'pending'";
+// Fetch pending pickups for today with building name
+// Fetch pending pickups for today with building name
+$sql_pending = "SELECT pr.request_id, pr.created_at, 
+               b.building_name, pr.latitude, pr.longitude, u.full_name AS resident_name
+        FROM pickuprequests pr
+        JOIN users u ON pr.user_id = u.user_id
+        JOIN buildings b ON pr.building_id = b.building_id
+        WHERE DATE(pr.created_at) = CURDATE()
+        AND pr.status = 'approved'
+        AND pr.request_id NOT IN (SELECT request_id FROM reschedule_requests WHERE status = 'Pending')";
 
 // If user is a resident, only show their pickups
 if ($user_role === 'resident') {
@@ -91,6 +94,32 @@ include 'includes/header.php';
         </div>
     </div>
 
+    <!-- Pending Pickups for Today -->
+    <div class="mt-4">
+        <h4>⏳ Today's Pending Pickups</h4>
+        <?php if ($result_pending->num_rows > 0): ?>
+            <div class="list-group">
+                <?php while ($pickup = $result_pending->fetch_assoc()): ?>
+                    <div class="list-group-item list-group-item-warning">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>📅 Request Date:</strong> <?= htmlspecialchars($pickup['created_at']) ?><br>
+                                <strong>🏢 Building:</strong> <?= htmlspecialchars($pickup['building_name'] ?? 'Unknown Building') ?><br>
+                                <?php if ($user_role === 'collector'): ?>
+                                    <strong>👤 Resident:</strong> <?= htmlspecialchars($pickup['resident_name']) ?><br>
+                                <?php endif; ?>
+                                <strong>📍 Location:</strong> 
+                                <?= "Lat: " . htmlspecialchars($pickup['latitude']) . ", Long: " . htmlspecialchars($pickup['longitude']) ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-secondary mt-2">No pending pickups found for today.</div>
+        <?php endif; ?>
+    </div>
+
     <!-- Completed Pickups -->
     <div class="mt-4">
         <h4>✅ Completed Pickups</h4>
@@ -114,32 +143,6 @@ include 'includes/header.php';
             </div>
         <?php else: ?>
             <div class="alert alert-warning mt-2">No completed pickups found.</div>
-        <?php endif; ?>
-    </div>
-
-    <!-- Pending Pickups -->
-    <div class="mt-4">
-        <h4>⏳ Pending Pickups</h4>
-        <?php if ($result_pending->num_rows > 0): ?>
-            <div class="list-group">
-                <?php while ($pickup = $result_pending->fetch_assoc()): ?>
-                    <div class="list-group-item list-group-item-warning">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>📅 Request Date:</strong> <?= htmlspecialchars($pickup['created_at']) ?><br>
-                                <strong>🏢 Building:</strong> <?= htmlspecialchars($pickup['building_name'] ?? 'Unknown Building') ?><br>
-                                <?php if ($user_role === 'collector'): ?>
-                                    <strong>👤 Resident:</strong> <?= htmlspecialchars($pickup['resident_name']) ?><br>
-                                <?php endif; ?>
-                                <strong>📍 Location:</strong> 
-                                <?= "Lat: " . htmlspecialchars($pickup['latitude']) . ", Long: " . htmlspecialchars($pickup['longitude']) ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
-            </div>
-        <?php else: ?>
-            <div class="alert alert-secondary mt-2">No pending pickups found.</div>
         <?php endif; ?>
     </div>
 </div>

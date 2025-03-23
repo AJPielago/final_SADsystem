@@ -13,11 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 // Include header first - this will establish the database connection
 include 'includes/header.php';
 
-// Get current week's start and end date
-$start_of_week = date('Y-m-d', strtotime('monday this week'));
-$end_of_week = date('Y-m-d', strtotime('sunday this week'));
-
-// Get user's building_id
+// Get the user's building_id
 $user_id = $_SESSION['user_id'];
 $user_query = "SELECT building_id FROM users WHERE user_id = ?";
 $stmt = $conn->prepare($user_query);
@@ -28,45 +24,22 @@ $user_data = $user_result->fetch_assoc();
 $building_id = $user_data['building_id'];
 $stmt->close();
 
-// Fetch approved scheduled pickups for this week for the user's building
-$sql = "SELECT ps.collection_date, ps.collection_time, b.building_name, u.full_name
-        FROM pickup_schedules ps
-        JOIN pickuprequests pr ON ps.request_id = pr.request_id
-        JOIN users u ON pr.user_id = u.user_id
-        JOIN buildings b ON pr.building_id = b.building_id
-        WHERE pr.building_id = ?
-        AND pr.status = 'approved'
-        AND ps.collection_date BETWEEN ? AND ?
-        AND TIME(ps.collection_time) >= '07:00:00' 
-        AND TIME(ps.collection_time) <= '18:00:00'
-        ORDER BY ps.collection_date, ps.collection_time";
-
-$stmt = $conn->prepare($sql);
-if ($stmt === false) {
-    die('Prepare failed: ' . htmlspecialchars($conn->error));
-}
-$stmt->bind_param("iss", $building_id, $start_of_week, $end_of_week);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$pickups = [];
-while ($row = $result->fetch_assoc()) {
-    $pickups[] = $row;
-}
-$stmt->close();
-
-// Get building name for display
-$building_query = "SELECT building_name FROM buildings WHERE building_id = ?";
+// Fetch building schedule for the user's building
+$building_query = "SELECT building_name, schedule FROM buildings WHERE building_id = ?";
 $stmt = $conn->prepare($building_query);
 $stmt->bind_param("i", $building_id);
 $stmt->execute();
 $building_result = $stmt->get_result();
 $building_data = $building_result->fetch_assoc();
 $building_name = $building_data['building_name'];
+$fixed_schedule = $building_data['schedule']; // Assuming schedule is stored in a time format like '10:00 AM'
 $stmt->close();
 
 // Days of the week mapping
 $days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+// Normalize the fixed schedule to 24-hour format for comparison
+$fixed_schedule_24hr = date("H:i", strtotime($fixed_schedule));
 ?>
 
 <div class="container" style="margin-top: 80px;">
@@ -76,11 +49,18 @@ $days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturd
         <?php foreach ($days_of_week as $day) echo "<div class='text-center fw-bold'>$day</div>"; ?>
         
         <?php
+        // Loop through each hour from 7 AM to 6 PM (18:00)
         for ($hour = 7; $hour <= 18; $hour++) {
             $time_label = date("h:i A", strtotime("$hour:00"));
+            $time_24hr = date("H:i", strtotime("$hour:00"));
             echo "<div class='time-column'>$time_label</div>";
             foreach ($days_of_week as $day) {
-                echo "<div class='schedule-cell' data-day='$day' data-time='$hour:00'></div>";
+                echo "<div class='schedule-cell' data-day='$day' data-time='$time_24hr'>";
+                // Check if the time matches the fixed schedule
+                if ($time_24hr == $fixed_schedule_24hr) {
+                    echo "<div class='pickup-block'>Pickup Scheduled</div>";
+                }
+                echo "</div>";
             }
         }
         ?>
@@ -89,21 +69,7 @@ $days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturd
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        let pickups = <?php echo json_encode($pickups); ?>;
-        pickups.forEach(pickup => {
-            let date = new Date(pickup.collection_date + 'T' + pickup.collection_time);
-            let dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-            let time = date.toTimeString().substring(0, 5);
-            let cell = document.querySelector(`[data-day='${dayName}'][data-time='${time}']`);
-            if (cell) {
-                let div = document.createElement("div");
-                div.className = "pickup-block";
-                div.innerHTML = `
-                    ${pickup.building_name}
-                `;
-                cell.appendChild(div);
-            }
-        });
+        // Additional interactivity can be added here if needed
     });
 </script>
 

@@ -90,7 +90,7 @@ include 'includes/header.php';
             var locations = data.map(pickup => ({
                 lat: parseFloat(pickup.latitude),
                 lon: parseFloat(pickup.longitude),
-                building: pickup.building,
+                building: pickup.building_name,
                 request_id: pickup.request_id
             }));
 

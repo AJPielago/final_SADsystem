@@ -56,7 +56,6 @@ $stmt->execute();
 $stmt->bind_result($latitude, $longitude);
 $stmt->fetch();
 $stmt->close();
-$conn->close();
 
 // Default location if no coordinates are found
 if (!$latitude || !$longitude) {

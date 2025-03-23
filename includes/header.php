@@ -212,7 +212,6 @@ if ($user_role === 'resident') {
                     <li><a href="reschedule_requests.php"><i class="bi bi-clock-history"></i> Reschedule Requests</a></li>
                     <li><a href="view_reports.php"><i class="bi bi-clipboard-data"></i> View Reports</a></li>
                     <li><a href="view_feedback.php"><i class="bi bi-chat-text"></i> View Feedback</a></li>
-                    <li><a href="view_donations.php"><i class="bi bi-box"></i> View Donations</a></li>
                 <?php elseif ($user_role === 'collector'): ?>
                     <li><a href="collector_dashboard.php"><i class="bi bi-truck"></i> Dashboard</a></li>
                     <li><a href="assigned_pickups.php"><i class="bi bi-clipboard-check"></i> Assigned Pickups</a></li>
@@ -224,9 +223,7 @@ if ($user_role === 'resident') {
                         <li><a href="pickup_history.php"><i class="bi bi-clock-history"></i> Recent Activities</a></li>
                     <?php endif; ?>
                     <li><a href="report_issue.php"><i class="bi bi-exclamation-triangle"></i> Report Issue</a></li>
-                    <hr class="bg-light">
                     <li><a href="donations.php"><i class="bi bi-gift"></i> Donate an Item</a></li>
-                    <li><a href="redeem_rewards.php"><i class="bi bi-gift"></i> Redeem Rewards</a></li>
                     <hr class="bg-light">
                     <li><a href="user_reschedule.php"><i class="bi bi-clock-history"></i> Manage Reschedule Requests</a></li>
                 <?php endif; ?>
