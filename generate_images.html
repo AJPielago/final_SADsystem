@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Placeholder Images</title>
+</head>
+<body>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <script>
+        function createColoredImage(width, height, color, text, filename) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Fill background
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Add text
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, width/2, height/2);
+            
+            // Convert to blob and download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/jpeg', 0.9);
+        }
+
+        // Create waste sorting game images
+        const wasteItems = [
+            ['plastic-bottle.jpg', '#3498db', 'Plastic Bottle'],
+            ['apple-core.jpg', '#2ecc71', 'Apple Core'],
+            ['battery.jpg', '#e74c3c', 'Battery'],
+            ['paper.jpg', '#3498db', 'Paper'],
+            ['banana-peel.jpg', '#2ecc71', 'Banana Peel'],
+            ['paint-can.jpg', '#e74c3c', 'Paint Can'],
+            ['glass-bottle.jpg', '#3498db', 'Glass Bottle'],
+            ['coffee-grounds.jpg', '#2ecc71', 'Coffee Grounds'],
+            ['medicine.jpg', '#e74c3c', 'Medicine']
+        ];
+
+        // Create community images
+        const communityImages = [
+            ['avatar1.jpg', '#3498db', 'Avatar'],
+            ['post1.jpg', '#2ecc71', 'Upcycling Project']
+        ];
+
+        // Create media images
+        const mediaImages = [
+            ['quiz.jpg', '#3498db', 'Recycling Quiz'],
+            ['virtual-tour.jpg', '#2ecc71', 'Virtual Tour'],
+            ['success-story.jpg', '#3498db', 'Success Story']
+        ];
+
+        // Generate all images
+        function generateImages() {
+            // Generate waste images
+            wasteItems.forEach(item => {
+                createColoredImage(200, 200, item[1], item[2], 'assets/waste/' + item[0]);
+            });
+
+            // Generate community images
+            communityImages.forEach(item => {
+                createColoredImage(100, 100, item[1], item[2], 'assets/community/' + item[0]);
+            });
+
+            // Generate media images
+            mediaImages.forEach(item => {
+                createColoredImage(400, 300, item[1], item[2], 'assets/media/' + item[0]);
+            });
+        }
+
+        // Run when page loads
+        window.onload = generateImages;
+    </script>
+</body>
+</html> 

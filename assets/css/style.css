@@ -1,0 +1,294 @@
+:root {
+    --primary-color: #2E7D32;  /* Forest Green */
+    --secondary-color: #81C784;  /* Light Green */
+    --accent-color: #FFA726;  /* Orange for recycling */
+    --background-color: #F1F8E9;  /* Light Mint */
+    --text-color: #1B5E20;  /* Dark Green */
+    --card-bg: #FFFFFF;
+    --border-color: #A5D6A7;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Header Styles */
+.navbar {
+    background-color: var(--primary-color) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    color: white !important;
+    font-weight: 600;
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.9) !important;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: white !important;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.card-header {
+    background-color: var(--primary-color) !important;
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1rem;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #1B5E20;
+    border-color: #1B5E20;
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-warning:hover {
+    background-color: #F57C00;
+    border-color: #F57C00;
+    transform: translateY(-2px);
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(129, 199, 132, 0.25);
+}
+
+.form-select {
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+}
+
+/* Table Styles */
+.table {
+    background-color: var(--card-bg);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 1rem;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(129, 199, 132, 0.1);
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 10px;
+    border: none;
+    padding: 1rem;
+}
+
+.alert-success {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+    border-left: 4px solid var(--primary-color);
+}
+
+.alert-danger {
+    background-color: #FFEBEE;
+    color: #C62828;
+    border-left: 4px solid #C62828;
+}
+
+.alert-warning {
+    background-color: #FFF3E0;
+    color: #E65100;
+    border-left: 4px solid var(--accent-color);
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    padding: 1rem;
+}
+
+.modal-title {
+    color: white;
+}
+
+/* Footer Styles */
+footer {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
+    margin-top: 2rem;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Nature-themed Icons */
+.nature-icon {
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+
+/* Recycling-themed Badges */
+.badge {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background-color: var(--primary-color);
+}
+
+.badge-warning {
+    background-color: var(--accent-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card {
+        margin: 1rem;
+    }
+    
+    .table-responsive {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+}
+
+/* Sidebar Styles */
+#sidebar {
+    background: var(--primary-color);
+    color: white;
+    padding: 20px;
+    position: fixed;
+    left: -300px;
+    top: 56px; /* Height of navbar */
+    width: 250px;
+    height: calc(100vh - 56px);
+    border-radius: 0 15px 15px 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    transition: all 0.3s ease;
+    overflow-y: auto;
+    z-index: 999;
+}
+
+#sidebar.show {
+    left: 0;
+}
+
+#sidebar h4 {
+    color: white;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+#sidebar ul li {
+    margin-bottom: 10px;
+}
+
+#sidebar ul li a {
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    display: block;
+    padding: 12px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+#sidebar ul li a:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    transform: translateX(5px);
+}
+
+#sidebar ul li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+#sidebar hr {
+    border-color: rgba(255,255,255,0.1);
+    margin: 15px 0;
+}
+
+/* Adjust main content when sidebar is shown */
+body.sidebar-shown .container {
+    margin-left: 250px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #sidebar {
+        width: 100%;
+        left: -100%;
+        border-radius: 0;
+    }
+    
+    body.sidebar-shown .container {
+        margin-left: 0;
+    }
+} 
