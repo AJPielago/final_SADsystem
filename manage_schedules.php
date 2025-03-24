@@ -1,10 +1,10 @@
 <?php
 session_start();
-require 'config/db.php';
-require 'includes/NotificationHelper.php';
+require_once 'vendor/autoload.php';
+require_once 'config/db.php';
 
 // Initialize NotificationHelper
-$notificationHelper = new NotificationHelper($conn);
+$notificationHelper = new \App\Includes\NotificationHelper($conn);
 
 // Ensure session variables exist
 if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role']) !== 'admin') {

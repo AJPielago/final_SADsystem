@@ -1,10 +1,10 @@
 <?php
 session_start();
 require 'config/db.php';
-require 'includes/NotificationHelper.php';
+require 'App/Includes/NotificationHelper.php';
 
 // Initialize NotificationHelper
-$notificationHelper = new NotificationHelper($conn);
+$notificationHelper = new App\Includes\NotificationHelper($conn);
 
 // Check if user is logged in and is admin
 if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role']) !== 'admin') {
@@ -26,6 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         // Get the current request details
         $check_query = "SELECT rr.*, 
                                pr.request_id, 
+                               pr.building_id,
                                u.full_name, 
                                b.building_name, 
                                pr.created_at AS request_created_date
@@ -48,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             mysqli_stmt_bind_param($stmt_status, "ssi", $new_date, $new_time, $reschedule_id);
             mysqli_stmt_execute($stmt_status);
             mysqli_stmt_close($stmt_status);
-
+        
             // Create notification for the collector
             $collector_message = "Your reschedule request has been approved. New collection date: " . 
                                date('F j, Y', strtotime($new_date)) . " at " . 
@@ -58,11 +59,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
                 $request_data['request_id'],
                 'reschedule_approved',
                 $collector_message,
-                true
+                false,  // Not admin notification
+                true    // Send email
             );
-
+            
+            // Get all residents in the building
+            $residents_sql = "SELECT user_id, full_name, email FROM users WHERE building_id = ? AND role = 'resident'";
+            $residents_stmt = $conn->prepare($residents_sql);
+            $residents_stmt->bind_param("i", $request_data['building_id']);
+            $residents_stmt->execute();
+            $residents_result = $residents_stmt->get_result();
+            
+            // Debug log
+            error_log("Building ID: " . $request_data['building_id']);
+            error_log("Number of residents found: " . $residents_result->num_rows);
+        
+            // Notify all residents in the building
+            while ($resident = $residents_result->fetch_assoc()) {
+                error_log("Processing resident: " . $resident['full_name'] . " (ID: " . $resident['user_id'] . ", Email: " . $resident['email'] . ")");
+                
+                $building_message = "A pickup in your building (" . $request_data['building_name'] . ") has been rescheduled.\n\n" .
+                                  "New Schedule: " . date('F j, Y', strtotime($new_date)) . " at " . 
+                                  date('g:i A', strtotime($new_time)) . "\n\n" .
+                                  "Please make sure to prepare your waste for collection on the new date and time.";
+                
+                $notificationHelper->createNotification(
+                    $resident['user_id'],
+                    $request_data['request_id'],
+                    'building_reschedule_approved',
+                    $building_message,
+                    false,  // Not admin notification
+                    true    // Send email
+                );
+            }
+        
             $_SESSION['success'] = "Reschedule request approved successfully.";
-        } else if ($action === 'reject') {
+        }
+         else if ($action === 'reject') {
             // Update reschedule request status
             $update_status = "UPDATE reschedule_requests SET status = 'Rejected' WHERE reschedule_id = ?";
             $stmt_status = mysqli_prepare($conn, $update_status);
@@ -77,7 +110,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
                 $request_data['request_id'],
                 'reschedule_rejected',
                 $collector_message,
-                true
+                false,  // Not admin notification
+                true    // Send email
             );
 
             $_SESSION['success'] = "Reschedule request rejected successfully.";
@@ -99,6 +133,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 // Fetch all reschedule requests
 $query = "SELECT rr.*, 
                  pr.request_id, 
+                 pr.building_id,
                  u.full_name, 
                  b.building_name,
                  pr.created_at AS request_created_date

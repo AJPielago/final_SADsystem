@@ -5,6 +5,7 @@ require 'config/db.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $full_name = $_POST['full_name'];
     $email = $_POST['email'];
+    $phone_number = $_POST['phone_number']; // Capture phone number
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     $building_id = $_POST['building_id'];
@@ -27,10 +28,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Hash password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Insert new user
-            $sql = "INSERT INTO users (full_name, email, password, role, building_id) VALUES (?, ?, ?, ?, ?)";
+            // Insert new user including phone_number
+            $sql = "INSERT INTO users (full_name, email, phone_number, password, role, building_id) VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssi", $full_name, $email, $hashed_password, $role, $building_id);
+            $stmt->bind_param("sssssi", $full_name, $email, $phone_number, $hashed_password, $role, $building_id);
 
             if ($stmt->execute()) {
                 $_SESSION['success'] = "Registration successful! Please login.";
@@ -106,6 +107,17 @@ $buildings_result = mysqli_query($conn, $buildings_query);
                                 </div>
                             </div>
 
+                            <!-- Phone Number Field -->
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-telephone"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                                </div>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="building_id" class="form-label">Select Building</label>
                                 <div class="input-group">
@@ -164,42 +176,3 @@ $buildings_result = mysqli_query($conn, $buildings_query);
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-    // Form validation
-    (function () {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
-
-    // Password visibility toggle
-    function togglePassword(inputId) {
-        const input = document.getElementById(inputId);
-        const button = input.nextElementSibling;
-        const icon = button.querySelector('i');
-        
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('bi-eye');
-            icon.classList.add('bi-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('bi-eye-slash');
-            icon.classList.add('bi-eye');
-        }
-    }
-    </script>
-</body>
-</html>

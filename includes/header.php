@@ -4,6 +4,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 ob_start();
+
+// Include Composer's autoloader
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Include database connection
 require_once __DIR__ . '/../config/db.php';
 
@@ -96,6 +100,12 @@ if ($user_role === 'resident') {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
     
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Footer fix CSS -->
     <style>
         html, body {
@@ -111,6 +121,35 @@ if ($user_role === 'resident') {
         }
         footer {
             flex-shrink: 0;
+        }
+        
+        /* Fixed styles for dropdown functionality */
+        .dropdown-menu {
+      position: absolute !important;
+      left: 50% !important; /* Center horizontally */
+      transform: translateX(-50%) !important; /* Adjust for half width shift */
+      z-index: 2000;
+      display: none;
+  }
+        
+        .dropdown-menu.show {
+            display: block !important;
+        }
+        
+        /* Style for notification bell */
+        .notification-bell {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        /* Ensure sidebar doesn't interfere with dropdowns */
+        #sidebar {
+            z-index: 1020;
+        }
+        
+        /* Make sure dropdown is visible */
+        .dropdown {
+            position: relative;
         }
     </style>
 </head>
@@ -131,63 +170,63 @@ if ($user_role === 'resident') {
 
             <?php if ($isLoggedIn): ?>
                 <div class="d-flex align-items-center">
-                    <!-- Notifications Dropdown -->
+                    <!-- Notifications Dropdown (Simplified) -->
                     <div class="dropdown me-3">
-                        <a class="nav-link text-light position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a href="#" class="nav-link text-light position-relative notification-bell" id="notificationBell">
                             <i class="bi bi-bell"></i>
+                            <?php if (isset($_SESSION['user_id'])): ?>
                             <?php
-                            require_once __DIR__ . '/NotificationHelper.php';
-                            $notificationHelper = new NotificationHelper($conn);
+                            require_once __DIR__ . '/../vendor/autoload.php';
+                            $notificationHelper = new \App\Includes\NotificationHelper($conn);
                             $isAdmin = isset($_SESSION['role']) && strtolower($_SESSION['role']) === 'admin';
                             $notifications = $notificationHelper->getUnreadNotifications($_SESSION['user_id'], $isAdmin);
                             $unreadCount = count($notifications);
-                            if ($unreadCount > 0):
                             ?>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    <?= $unreadCount ?>
-                                </span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <?php echo $unreadCount; ?>
+                            </span>
                             <?php endif; ?>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
+                        <div class="dropdown-menu dropdown-menu-end" id="notificationsMenu">
+                            <?php if (isset($_SESSION['user_id'])): ?>
                             <?php if (empty($notifications)): ?>
-                                <li><a class="dropdown-item" href="#">No new notifications</a></li>
+                                <a class="dropdown-item" href="#">No new notifications</a>
                             <?php else: ?>
                                 <?php foreach ($notifications as $notification): ?>
-                                    <li>
-                                        <a class="dropdown-item" href="#" onclick="markNotificationAsRead(<?= $notification['notification_id'] ?>)">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-shrink-0">
-                                                    <?php
-                                                    $icon = '';
-                                                    switch ($notification['type']) {
-                                                        case 'approved':
-                                                            $icon = '<i class="bi bi-check-circle-fill text-success"></i>';
-                                                            break;
-                                                        case 'rejected':
-                                                            $icon = '<i class="bi bi-x-circle-fill text-danger"></i>';
-                                                            break;
-                                                        case 'rescheduled':
-                                                            $icon = '<i class="bi bi-calendar-check text-warning"></i>';
-                                                            break;
-                                                        case 'new_request':
-                                                            $icon = '<i class="bi bi-plus-circle-fill text-primary"></i>';
-                                                            break;
-                                                    }
-                                                    echo $icon;
-                                                    ?>
-                                                </div>
-                                                <div class="flex-grow-1 ms-2">
-                                                    <div class="small text-muted"><?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?></div>
-                                                    <div><?= htmlspecialchars($notification['message']) ?></div>
-                                                </div>
+                                    <a class="dropdown-item notification-item" href="#" data-notification-id="<?= $notification['notification_id'] ?>">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <?php
+                                                $icon = '';
+                                                switch ($notification['type']) {
+                                                    case 'approved':
+                                                        $icon = '<i class="bi bi-check-circle-fill text-success"></i>';
+                                                        break;
+                                                    case 'rejected':
+                                                        $icon = '<i class="bi bi-x-circle-fill text-danger"></i>';
+                                                        break;
+                                                    case 'rescheduled':
+                                                        $icon = '<i class="bi bi-calendar-check text-warning"></i>';
+                                                        break;
+                                                    case 'new_request':
+                                                        $icon = '<i class="bi bi-plus-circle-fill text-primary"></i>';
+                                                        break;
+                                                }
+                                                echo $icon;
+                                                ?>
                                             </div>
-                                        </a>
-                                    </li>
+                                            <div class="flex-grow-1 ms-2">
+                                                <div class="small text-muted"><?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?></div>
+                                                <div><?= htmlspecialchars($notification['message']) ?></div>
+                                            </div>
+                                        </div>
+                                    </a>
                                 <?php endforeach; ?>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-center" href="#" onclick="markAllNotificationsAsRead()">Mark all as read</a></li>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-center" href="#" id="markAllAsRead">Mark all as read</a>
                             <?php endif; ?>
-                        </ul>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
                     <!-- Profile Button -->
@@ -235,17 +274,63 @@ if ($user_role === 'resident') {
 
     <!-- Main Content Container -->
     <div class="container py-4">
-    <?php if ($isLoggedIn): ?>
-        <script>
-            document.getElementById("sidebarToggle").addEventListener("click", function() {
+    
+    <!-- Custom JavaScript for Notifications - Implemented with manual toggle -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM fully loaded");
+        
+        // Handle sidebar toggle
+        const sidebarToggle = document.getElementById("sidebarToggle");
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener("click", function() {
                 document.getElementById("sidebar").classList.toggle("show");
             });
-        </script>
-    <?php endif; ?>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+        }
+        
+        // Manual notification dropdown toggle
+        const notificationBell = document.getElementById('notificationBell');
+        const notificationsMenu = document.getElementById('notificationsMenu');
+        
+        if (notificationBell && notificationsMenu) {
+            notificationBell.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                notificationsMenu.classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!notificationsMenu.contains(e.target) && e.target !== notificationBell) {
+                    notificationsMenu.classList.remove('show');
+                }
+            });
+        }
+        
+        // Handle notification item click
+        const notificationItems = document.querySelectorAll('.notification-item');
+        notificationItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const notificationId = this.getAttribute('data-notification-id');
+                markNotificationAsRead(notificationId);
+            });
+        });
+        
+        // Handle mark all as read
+        const markAllBtn = document.getElementById('markAllAsRead');
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                markAllNotificationsAsRead();
+            });
+        }
+    });
+    
     function markNotificationAsRead(notificationId) {
+        console.log("Marking notification as read:", notificationId);
         fetch('mark_notification_read.php', {
             method: 'POST',
             headers: {
@@ -255,6 +340,7 @@ if ($user_role === 'resident') {
         })
         .then(response => response.json())
         .then(data => {
+            console.log("Response:", data);
             if (data.success) {
                 // Remove the notification from the dropdown
                 const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
@@ -263,7 +349,7 @@ if ($user_role === 'resident') {
                 }
                 
                 // Update the notification count
-                const badge = document.querySelector('#notificationsDropdown .badge');
+                const badge = document.querySelector('#notificationBell .badge');
                 if (badge) {
                     const currentCount = parseInt(badge.textContent);
                     if (currentCount > 1) {
@@ -272,27 +358,40 @@ if ($user_role === 'resident') {
                         badge.remove();
                     }
                 }
+                
+                // If no more notifications, update the dropdown content
+                const remainingNotifications = document.querySelectorAll('.notification-item');
+                if (remainingNotifications.length === 0) {
+                    document.getElementById('notificationsMenu').innerHTML = '<a class="dropdown-item" href="#">No new notifications</a>';
+                }
             }
+        })
+        .catch(error => {
+            console.error('Error marking notification as read:', error);
         });
     }
 
     function markAllNotificationsAsRead() {
+        console.log("Marking all notifications as read");
         fetch('mark_all_notifications_read.php', {
             method: 'POST'
         })
         .then(response => response.json())
         .then(data => {
+            console.log("Response:", data);
             if (data.success) {
                 // Clear all notifications from the dropdown
-                const dropdown = document.querySelector('#notificationsDropdown + .dropdown-menu');
-                dropdown.innerHTML = '<li><a class="dropdown-item" href="#">No new notifications</a></li>';
+                document.getElementById('notificationsMenu').innerHTML = '<a class="dropdown-item" href="#">No new notifications</a>';
                 
                 // Remove the notification count badge
-                const badge = document.querySelector('#notificationsDropdown .badge');
+                const badge = document.querySelector('#notificationBell .badge');
                 if (badge) {
                     badge.remove();
                 }
             }
+        })
+        .catch(error => {
+            console.error('Error marking all notifications as read:', error);
         });
     }
     </script>

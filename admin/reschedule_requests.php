@@ -4,7 +4,7 @@ require '../config/db.php';
 require '../includes/NotificationHelper.php';
 
 // Initialize NotificationHelper
-$notificationHelper = new NotificationHelper($conn);
+$notificationHelper = new App\Includes\NotificationHelper($conn);
 
 // Check if user is logged in and is admin
 if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role']) !== 'admin') {

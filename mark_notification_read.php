@@ -1,7 +1,7 @@
 <?php
 session_start();
-require 'config/db.php';
-require 'includes/NotificationHelper.php';
+require_once 'vendor/autoload.php';
+require_once 'config/db.php';
 
 header('Content-Type: application/json');
 
@@ -10,7 +10,8 @@ if (!isset($_SESSION['user_id']) || !isset($_POST['notification_id'])) {
     exit();
 }
 
-$notificationHelper = new NotificationHelper($conn);
+// Initialize NotificationHelper
+$notificationHelper = new \App\Includes\NotificationHelper($conn);
 $notificationHelper->markAsRead($_POST['notification_id'], $_SESSION['user_id']);
 
 echo json_encode(['success' => true]); 
