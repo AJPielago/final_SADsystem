@@ -618,6 +618,55 @@ include 'includes/header.php';
         margin: 10px;
     }
 
+    .waste-item {
+        background: #fff;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: move;
+        transition: transform 0.2s ease;
+        border: 2px solid #dee2e6;
+    }
+
+    .waste-item:hover {
+        transform: scale(1.05);
+    }
+
+    .waste-item.dragging {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+
+    .waste-item img {
+        width: 100%;
+        height: 100px;
+        object-fit: contain;
+    }
+
+    .bin {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 120px;
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        transition: all 0.3s ease;
+    }
+
+    .bin.drag-over {
+        background: #e9ecef;
+        border-color: #28a745;
+    }
+
+    .bin i {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+    }
+
+    .bin span {
+        font-size: 0.9em;
+        color: #495057;
+    }
 </style>
 
 <!-- Left side decorative elements -->
@@ -802,65 +851,32 @@ include 'includes/header.php';
             <div class="timer">Time: <span id="timer">60</span>s</div>
         </div>
         
-        <div class="game-area">
-            <div class="waste-items" id="wasteItems">
-                <!-- Sample Items with Images -->
-                <div class="waste-item" data-type="recyclable">
-    <img src="assets/plastic_bottle.png" alt="Plastic Bottle" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Plastic Bottle</span>
-</div>
-<div class="waste-item" data-type="organic">
-    <img src="assets/apple-core.png" alt="Apple Core" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Apple Core</span>
-</div>
-<div class="waste-item" data-type="hazardous">
-    <img src="assets/battery.jpg" alt="Battery" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Battery</span>
-</div>
-<div class="waste-item" data-type="recyclable">
-    <img src="assets/paper.png" alt="Paper" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Paper</span>
-</div>
-<div class="waste-item" data-type="organic">
-    <img src="assets/banana-peel.jpg" alt="Banana Peel" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Banana Peel</span>
-</div>
-<div class="waste-item" data-type="hazardous">
-    <img src="assets/paint-can.jpg" alt="Paint Can" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Paint Can</span>
-</div>
-<div class="waste-item" data-type="recyclable">
-    <img src="assets/glass-bottle.jpg" alt="Glass Bottle" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Glass Bottle</span>
-</div>
-<div class="waste-item" data-type="organic">
-    <img src="assets/coffee-grounds.jpg" alt="Coffee Grounds" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Coffee Grounds</span>
-</div>
-<div class="waste-item" data-type="hazardous">
-    <img src="assets/medicine.jpg" alt="Medicine" class="waste-image" style="width: 50px; height: 50px; object-fit: contain;">
-    <span>Medicine</span>
-</div>
+        <div id="gameStatus" style="margin: 10px 0; font-weight: bold; color: #28a745;">
+            Select a category to begin!
+        </div>
 
-            </div>
-            
+        <div class="game-area">
             <div class="bins">
-                <div class="bin" data-type="recyclable">
+                <div class="bin" data-type="recyclable" onclick="handleBinClick(this)">
                     <i class="fas fa-recycle"></i>
                     <span>Recyclable</span>
                 </div>
-                <div class="bin" data-type="organic">
+                <div class="bin" data-type="organic" onclick="handleBinClick(this)">
                     <i class="fas fa-leaf"></i>
                     <span>Organic</span>
                 </div>
-                <div class="bin" data-type="hazardous">
+                <div class="bin" data-type="hazardous" onclick="handleBinClick(this)">
                     <i class="fas fa-skull-crossbones"></i>
                     <span>Hazardous</span>
                 </div>
             </div>
+
+            <div class="waste-items" id="wasteItems">
+                <!-- Items will be dynamically added here -->
+            </div>
         </div>
         
-        <button id="startGame" class="btn btn-primary mt-3">Start Game</button>
+        <button id="startGame" class="btn btn-primary mt-3" onclick="startGame()">Start Game</button>
     </div>
 
     <!-- Daily Challenges -->
@@ -1254,38 +1270,49 @@ include 'includes/header.php';
         });
     }
 
-    // Waste Sorting Game
-    const wasteItems = [
-    { name: 'Plastic Bottle', type: 'recyclable', image: 'assets/plastic_bottle.png'  },
-    { name: 'Apple Core', type: 'organic', image: 'assets/apple-core.png'  },
-    { name: 'Battery', type: 'hazardous', image: 'assets/battery.jpg' },
-    { name: 'Paper', type: 'recyclable', image: 'assets/paper.png' },
-    { name: 'Banana Peel', type: 'organic', image: 'assets/banana-peel.jpg'  },
-    { name: 'Paint Can', type: 'hazardous', image: 'assets/paint-can.jpg'  },
-    { name: 'Glass Bottle', type: 'recyclable', image: 'assets/glass-bottle.jpg' },
-    { name: 'Coffee Grounds', type: 'organic', image: 'assets/coffee-grounds.jpg'},
-    { name: 'Medicine', type: 'hazardous', image: 'assets/medicine.jpg' }
-];
-
+    // Waste Sorting Game Logic
     let currentScore = 0;
     let timeLeft = 60;
     let gameInterval;
-    let currentItems = [];
+    let selectedBinType = null;
+    let gamesPlayedToday = 0;
+    const MAX_GAMES_PER_DAY = 3;
+
+    // Game items definition
+    const wasteItems = [
+        { name: 'Plastic Bottle', type: 'recyclable', image: 'assets/plastic_bottle.png' },
+        { name: 'Apple Core', type: 'organic', image: 'assets/apple-core.png' },
+        { name: 'Battery', type: 'hazardous', image: 'assets/battery.jpg' },
+        { name: 'Paper', type: 'recyclable', image: 'assets/paper.png' },
+        { name: 'Banana Peel', type: 'organic', image: 'assets/banana-peel.jpg' },
+        { name: 'Paint Can', type: 'hazardous', image: 'assets/paint-can.jpg' },
+        { name: 'Glass Bottle', type: 'recyclable', image: 'assets/glass-bottle.jpg' },
+        { name: 'Coffee Grounds', type: 'organic', image: 'assets/coffee-grounds.jpg' },
+        { name: 'Medicine', type: 'hazardous', image: 'assets/medicine.jpg' }
+    ];
 
     function startGame() {
+        // Reset game state
         currentScore = 0;
         timeLeft = 60;
+        selectedBinType = null;
         document.getElementById('score').textContent = currentScore;
         document.getElementById('timer').textContent = timeLeft;
         document.getElementById('startGame').disabled = true;
+        document.getElementById('gameStatus').textContent = 'Select a category to begin!';
         
-        // Clear previous items
+        // Reset bin selections
+        document.querySelectorAll('.bin').forEach(bin => {
+            bin.classList.remove('selected');
+            bin.style.backgroundColor = '';
+        });
+        
+        // Clear and populate waste items
         const wasteItemsContainer = document.getElementById('wasteItems');
         wasteItemsContainer.innerHTML = '';
         
-        // Add new items
-        currentItems = shuffleArray([...wasteItems]).slice(0, 6);
-        currentItems.forEach(item => {
+        // Shuffle and create waste items
+        shuffleArray([...wasteItems]).forEach(item => {
             const itemElement = createWasteItem(item);
             wasteItemsContainer.appendChild(itemElement);
         });
@@ -1297,56 +1324,117 @@ include 'includes/header.php';
     function createWasteItem(item) {
         const div = document.createElement('div');
         div.className = 'waste-item';
-        div.draggable = true;
         div.dataset.type = item.type;
         
         const img = document.createElement('img');
         img.src = item.image;
         img.alt = item.name;
+        img.className = 'waste-image';
         img.style.width = '60%';
         img.style.height = '60%';
         img.style.objectFit = 'contain';
         
-        div.appendChild(img);
+        const span = document.createElement('span');
+        span.textContent = item.name;
         
-        // Add drag events
-        div.addEventListener('dragstart', handleDragStart);
-        div.addEventListener('dragend', handleDragEnd);
+        div.appendChild(img);
+        div.appendChild(span);
+        
+        // Add click event
+        div.addEventListener('click', () => handleItemClick(div));
         
         return div;
     }
 
-    function handleDragStart(e) {
-        e.dataTransfer.setData('text/plain', e.target.dataset.type);
-        e.target.classList.add('dragging');
-    }
-
-    function handleDragEnd(e) {
-        e.target.classList.remove('dragging');
-    }
-
-    function handleBinDrop(e, binType) {
-        e.preventDefault();
-        const itemType = e.dataTransfer.getData('text/plain');
+    function handleBinClick(bin) {
+        // Remove selection from all bins
+        document.querySelectorAll('.bin').forEach(b => {
+            b.classList.remove('selected');
+            b.style.backgroundColor = '';
+        });
         
-        if (itemType === binType) {
-            currentScore += 10;
-            document.getElementById('score').textContent = currentScore;
-            
-            // Remove the item
-            const item = document.querySelector('.dragging');
-            if (item) {
-                item.remove();
-            }
-            
-            // Check if game is complete
-            if (document.querySelectorAll('.waste-item').length === 0) {
-                endGame(true);
-            }
-        } else {
-            currentScore = Math.max(0, currentScore - 5);
-            document.getElementById('score').textContent = currentScore;
+        // Select clicked bin
+        bin.classList.add('selected');
+        bin.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+        selectedBinType = bin.dataset.type;
+        
+        // Update status message
+        document.getElementById('gameStatus').textContent = 
+            `Selected: ${selectedBinType.charAt(0).toUpperCase() + selectedBinType.slice(1)} - Click matching items`;
+    }
+
+    function handleItemClick(item) {
+        if (!selectedBinType) {
+            showMessage('Please select a category first!');
+            return;
         }
+        
+        const itemType = item.dataset.type;
+        
+        if (itemType === selectedBinType) {
+            // Correct match
+            currentScore += 10;
+            showFeedback(item, true);
+            item.style.transition = 'all 0.3s ease-out';
+            item.style.opacity = '0';
+            item.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                item.remove();
+                if (document.querySelectorAll('.waste-item').length === 0) {
+                    endGame(true);
+                }
+            }, 300);
+        } else {
+            // Wrong match
+            currentScore = Math.max(0, currentScore - 5);
+            showFeedback(item, false);
+            item.style.animation = 'shake 0.5s ease-in-out';
+            setTimeout(() => {
+                item.style.animation = '';
+            }, 500);
+        }
+        
+        document.getElementById('score').textContent = currentScore;
+    }
+
+    function showMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.style.position = 'fixed';
+        messageDiv.style.top = '20%';
+        messageDiv.style.left = '50%';
+        messageDiv.style.transform = 'translateX(-50%)';
+        messageDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        messageDiv.style.color = 'white';
+        messageDiv.style.padding = '10px 20px';
+        messageDiv.style.borderRadius = '5px';
+        messageDiv.style.zIndex = '1000';
+        
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 2000);
+    }
+
+    function showFeedback(element, isCorrect) {
+        const feedback = document.createElement('div');
+        feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+        feedback.textContent = isCorrect ? '✓ +10' : '✗ -5';
+        feedback.style.position = 'absolute';
+        feedback.style.top = '-30px';
+        feedback.style.left = '50%';
+        feedback.style.transform = 'translateX(-50%)';
+        feedback.style.color = isCorrect ? '#28a745' : '#dc3545';
+        feedback.style.fontWeight = 'bold';
+        feedback.style.fontSize = '1.2em';
+        feedback.style.textShadow = '0 0 5px rgba(0,0,0,0.3)';
+        
+        element.style.position = 'relative';
+        element.appendChild(feedback);
+        
+        feedback.style.animation = 'fadeUpAndOut 1s ease-out';
+        setTimeout(() => feedback.remove(), 1000);
     }
 
     function updateTimer() {
@@ -1358,15 +1446,86 @@ include 'includes/header.php';
         }
     }
 
-    function endGame(won) {
+    function endGame(completed) {
         clearInterval(gameInterval);
         document.getElementById('startGame').disabled = false;
         
-        const message = won ? 
-            `Congratulations! You won with a score of ${currentScore}!` : 
-            `Game Over! Your final score: ${currentScore}`;
+        // Calculate rewards points (0.2 points for every 10 score points)
+        const rewardsPoints = (currentScore / 10) * 0.2;
         
+        // Save points first
+        saveRewardsPoints(rewardsPoints);
+        
+        // Prepare result message
+        let message = completed ? 
+            `Congratulations! You completed the game with a score of ${currentScore}!\n` : 
+            `Time's up! Your final score: ${currentScore}\n`;
+        
+        message += `You earned ${rewardsPoints.toFixed(1)} points!\n`;
+        message += `These points can be used to redeem rewards in the Rewards Section.\n`;
+        message += `Please refresh the Rewards page to see your updated points.`;
+        
+        // Show results
         alert(message);
+    }
+
+    function saveRewardsPoints(points) {
+        // Validate points before sending
+        if (isNaN(points) || points < 0) {
+            console.error('Invalid points value:', points);
+            alert('Error: Invalid points value');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('points', points.toFixed(1));
+        
+        // Show saving indicator
+        const statusMsg = document.getElementById('gameStatus');
+        statusMsg.textContent = 'Saving points...';
+        
+        fetch('includes/save_rewards.php', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server did not return JSON');
+            }
+            return response.text().then(text => {
+                try {
+                    if (!text) {
+                        throw new Error('Empty response from server');
+                    }
+                    console.log('Raw server response:', text); // Debug log
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Failed to parse JSON:', text);
+                    throw new Error('Invalid JSON response from server');
+                }
+            });
+        })
+        .then(data => {
+            console.log('Parsed response:', data);
+            if (data.success) {
+                statusMsg.textContent = `Points saved successfully! New total: ${data.new_total}`;
+                console.log('Points saved successfully. New total:', data.new_total);
+            } else {
+                throw new Error(data.message || 'Failed to save points');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving points:', error);
+            statusMsg.textContent = 'Error saving points. Please try again.';
+            alert(`Error saving points: ${error.message}. Please try again or contact support.`);
+        });
     }
 
     function shuffleArray(array) {
@@ -1376,19 +1535,5 @@ include 'includes/header.php';
         }
         return array;
     }
-
-    // Initialize game
-    document.addEventListener('DOMContentLoaded', function() {
-        const startButton = document.getElementById('startGame');
-        if (startButton) {
-            startButton.addEventListener('click', startGame);
-        }
-
-        // Add drop event listeners to bins
-        document.querySelectorAll('.bin').forEach(bin => {
-            bin.addEventListener('dragover', e => e.preventDefault());
-            bin.addEventListener('drop', e => handleBinDrop(e, bin.dataset.type));
-        });
-    });
 </script>
 <?php include 'includes/footer.php'; ?>

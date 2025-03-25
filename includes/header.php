@@ -260,6 +260,7 @@ if ($user_role === 'resident') {
                     <?php if ($showPickupOptions): ?>
                         <li><a href="pickup.php"><i class="bi bi-truck"></i> Request Pickup</a></li>
                         <li><a href="pickup_history.php"><i class="bi bi-clock-history"></i> Recent Activities</a></li>
+                        <li><a href="redeem_rewards.php"><i class="bi bi-gift"></i> Redeem Rewards</a></li>
                     <?php endif; ?>
                     <li><a href="report_issue.php"><i class="bi bi-exclamation-triangle"></i> Report Issue</a></li>
                     <li><a href="donations.php"><i class="bi bi-gift"></i> Donate an Item</a></li>
