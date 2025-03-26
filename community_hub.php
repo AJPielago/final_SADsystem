@@ -732,10 +732,6 @@ include 'includes/header.php';
             <i class="fas fa-newspaper"></i>
             <h3>News & Awareness Hub 📰</h3>
         </div>
-        <div class="card" data-name="community" onclick="openModal('community')">
-            <i class="fas fa-exclamation-triangle"></i>
-            <h3>Community Interaction ⚠️</h3>
-        </div>
         <div class="card" data-name="media" onclick="openModal('media')">
             <i class="fas fa-photo-video"></i>
             <h3>Fun & Engaging Media 🎥</h3>
@@ -944,28 +940,6 @@ include 'includes/header.php';
         </div>
     </div>
 
-    <!-- Community Feed -->
-    <div class="community-feed">
-        <div class="post">
-            <div class="post-header">
-                <img src="assets/community/avatar1.jpg" alt="User" class="avatar">
-                <div class="post-info">
-                    <h6>Sarah Johnson</h6>
-                    <small>2 hours ago</small>
-                </div>
-            </div>
-            <div class="post-content">
-                <p>Just started my zero-waste journey! Here's my first attempt at making reusable shopping bags from old t-shirts. #ZeroWaste #Upcycling</p>
-                <img src="assets/community/post1.jpg" alt="Upcycling Project" class="post-image">
-            </div>
-            <div class="post-actions">
-                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-heart"></i> Like</button>
-                <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-comment"></i> Comment</button>
-                <button class="btn btn-sm btn-outline-success"><i class="fas fa-share"></i> Share</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="modal" id="media">
     <button class="close-btn" onclick="closeModal()">✖</button>
