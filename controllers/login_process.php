@@ -11,8 +11,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("Database connection failed: " . mysqli_connect_error());
     }
 
-    // Prepare the SQL statement
-    $stmt = $conn->prepare("SELECT user_id, email, password, role FROM users WHERE email = ?");
+    // Updated SQL to include is_verified
+    $stmt = $conn->prepare("SELECT user_id, email, password, role, is_verified FROM users WHERE email = ?");
 
     // Check if query preparation was successful
     if (!$stmt) {
@@ -24,8 +24,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-        $stmt->bind_result($user_id, $db_email, $hashed_password, $role);
+        $stmt->bind_result($user_id, $db_email, $hashed_password, $role, $is_verified);
         $stmt->fetch();
+
+        // Check if email is verified
+        if (!$is_verified) {
+            // Store email in session for verification
+            $_SESSION['pending_email'] = $email;
+            
+            // Generate new OTP
+            $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $expires_at = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+            // Store OTP
+            $otp_sql = "INSERT INTO otp_verification (email, otp_code, expires_at) VALUES (?, ?, ?)";
+            $otp_stmt = $conn->prepare($otp_sql);
+            $otp_stmt->bind_param("sss", $email, $otp, $expires_at);
+            $otp_stmt->execute();
+
+            // Send verification email
+            require '../includes/mailer.php';
+            if (sendOTPEmail($email, $otp)) {
+                error_log("New OTP sent to: " . $email);
+                error_log("OTP: " . $otp);
+                error_log("Expires at: " . $expires_at);
+                header("Location: ../verify_email.php");
+            } else {
+                header("Location: ../login.php?error=Failed to send verification email. Please contact support.");
+            }
+            exit();
+        }
 
         // Verify password
         if (password_verify($password, $hashed_password)) {

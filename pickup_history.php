@@ -7,7 +7,27 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+$user_id = $_SESSION['user_id'];
+$conn = new mysqli('localhost', 'root', '', 'saddb'); // Update with your database credentials
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
+$stmt = $conn->prepare("SELECT role FROM users WHERE user_id = ?");
+if ($stmt === false) {
+    die('Prepare failed: ' . htmlspecialchars($conn->error));
+}
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($role);
+$stmt->fetch();
+$stmt->close();
+
+// Allow both collectors and residents to access the page
+if ($role !== 'collector' && $role !== 'resident') {
+    header("Location: login.php");
+    exit();
+}
 $user_id = $_SESSION['user_id'];
 $user_role = $_SESSION['role'] ?? '';
 

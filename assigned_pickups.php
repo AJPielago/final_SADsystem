@@ -12,7 +12,26 @@ require 'config/db.php';
 if (!isset($_SESSION['user_id'])) {
     die("Error: User ID not found in session.");
 }
+$user_id = $_SESSION['user_id'];
+$conn = new mysqli('localhost', 'root', '', 'saddb'); // Update with your database credentials
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
+$stmt = $conn->prepare("SELECT role FROM users WHERE user_id = ?");
+if ($stmt === false) {
+    die('Prepare failed: ' . htmlspecialchars($conn->error));
+}
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($role);
+$stmt->fetch();
+$stmt->close();
+
+if ($role !== 'collector') {
+    header("Location: login.php");
+    exit();
+}
 $today = date('Y-m-d');
 
 // Fetch assigned pickups for today

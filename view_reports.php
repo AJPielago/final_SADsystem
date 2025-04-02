@@ -1,5 +1,29 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+$user_id = $_SESSION['user_id'];
+$conn = new mysqli('localhost', 'root', '', 'saddb'); // Update with your database credentials
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$stmt = $conn->prepare("SELECT role FROM users WHERE user_id = ?");
+if ($stmt === false) {
+    die('Prepare failed: ' . htmlspecialchars($conn->error));
+}
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($role);
+$stmt->fetch();
+$stmt->close();
+
+if ($role !== 'admin') {
+    header("Location: login.php");
+    exit();
+}
 require 'config/db.php';
 include 'includes/header.php';
 ?>
@@ -66,7 +90,7 @@ include 'includes/header.php';
                                         <span class="text-muted">No Image</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= htmlspecialchars($issue['gps_location'] ?? 'Unknown') ?></td>
+                                <td><?= htmlspecialchars($issue['location'] ?? 'Unknown') ?></td>
                                 <td>
                                     <span class="badge bg-<?= ($issue['status'] == 'pending') ? 'warning' : 'success' ?>">
                                         <?= htmlspecialchars(ucfirst($issue['status'])) ?>
@@ -74,7 +98,7 @@ include 'includes/header.php';
                                 </td>
                                 <td><?= date('F j, Y g:i A', strtotime($issue['created_at'])) ?></td>
                                 <td>
-                                    <form action="update_issue_status.php" method="POST" class="d-flex">
+                                    <form action="admin/update_issue_status.php" method="POST" class="d-flex">
                                         <input type="hidden" name="issue_id" value="<?= htmlspecialchars($issue['issue_id']) ?>">
                                         <select name="status" class="form-select form-select-sm me-2">
                                             <option value="pending" <?= ($issue['status'] == 'pending') ? 'selected' : '' ?>>Pending</option>
@@ -113,13 +137,7 @@ html, body {
     word-wrap: break-word;
 }
 
-footer {
-    background-color: #343a40;
-    color: white;
-    text-align: center;
-    padding: 5px 0;
-    margin-top: auto;
-}
+
 </style>
 
 <?php include 'includes/footer.php'; ?>

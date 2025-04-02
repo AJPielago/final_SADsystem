@@ -47,10 +47,6 @@ if ($user_id) {
                         <label for="feedback" class="form-label">Your Feedback</label>
                         <textarea id="feedback" name="feedback" class="form-control" rows="4" required></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="feedback_email" class="form-label">Your Email (Optional)</label>
-                        <input type="email" id="feedback_email" name="email" class="form-control">
-                    </div>
                     <button type="submit" class="btn btn-primary">Submit Feedback</button>
                     <div id="feedbackMessage" class="mt-3"></div>
                 </form>
@@ -66,34 +62,26 @@ if ($user_id) {
             <div class="col-md-4">
                 <h5 class="mb-3">
                     <i class="bi bi-recycle nature-icon"></i>
-                    SAD System
+                    Green Bin
                 </h5>
-                <p class="mb-0">Smart Automated Disposal System for efficient waste management and recycling.</p>
+                <p class="mb-0">Smart Waste Management System for efficient waste collection and recycling in BGC.</p>
             </div>
             <div class="col-md-4">
                 <h5 class="mb-3">Quick Links</h5>
                 <ul class="list-unstyled">
                     <li><a href="about.php" class="text-white text-decoration-none">About Us</a></li>
-                    <li><a href="contact.php" class="text-white text-decoration-none">Contact</a></li>
                     <li><a href="faq.php" class="text-white text-decoration-none">FAQ</a></li>
+                    <li><a href="contact.php" class="text-white text-decoration-none">Contact</a></li>
                 </ul>
-            </div>
-            <div class="col-md-4">
-                <h5 class="mb-3">Connect With Us</h5>
-                <div class="d-flex gap-3">
-                    <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
-                    <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
-                </div>
             </div>
         </div>
         <hr class="my-4 border-light">
         <div class="row">
             <div class="col-md-6 text-center text-md-start">
-                <p class="mb-0">&copy; <?= date('Y') ?> SAD System. All rights reserved.</p>
+                <p class="mb-0">&copy; <?= date('Y') ?> Green Bin. All rights reserved.</p>
             </div>
             <div class="col-md-6 text-center text-md-end">
-                <p class="mb-0">Making the world greener, one pickup at a time.</p>
+                <p class="mb-0">Making BGC a cleaner, greener city.</p>
             </div>
         </div>
     </div>

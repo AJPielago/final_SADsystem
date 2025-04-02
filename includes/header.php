@@ -25,7 +25,7 @@ if ($isLoggedIn) {
     $user_id = $_SESSION['user_id'];
 
     // Fetch user details including building_id
-    $sql_user = "SELECT full_name, role, points, building_id FROM users WHERE user_id = ?";
+    $sql_user = "SELECT full_name, role, points, building_id, profile_picture FROM users WHERE user_id = ?";
     $stmt_user = $conn->prepare($sql_user);
     $stmt_user->bind_param("i", $user_id);
     $stmt_user->execute();
@@ -163,13 +163,43 @@ if ($user_role === 'resident') {
                 </button>
             <?php endif; ?>
             
-            <a class="navbar-brand" href="index.php">
-                <i class="bi bi-recycle nature-icon"></i>
-                Green Bin
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
+                <img src="assets/gif-logo.gif" alt="Logo" height="50" class="d-inline-block me-1">
+                <span><i class="bi bi-recycle nature-icon"></i> Green Bin</span>
             </a>
 
             <?php if ($isLoggedIn): ?>
                 <div class="d-flex align-items-center">
+                    <?php
+                    // List of pages that contain tables
+                    $pages_with_tables = [
+                        'admin_dashboard.php',
+                        'dashboard.php',
+                        'collection_requests.php',
+                        'waste_statistics.php',
+                        'pickup_history.php',
+                        'view_reports.php',
+                        'view_feedback.php',
+                        'view_donations.php',
+                        'assigned_pickups.php',
+                        'manage_users.php',
+                        'manage_schedules.php',
+                        'reschedule_requests.php',
+                        'user_reschedule.php'
+                    ];
+                    
+                    // Get current page
+                    $current_page = basename($_SERVER['PHP_SELF']);
+                    
+                    // Show print button only on pages with tables
+                    if (in_array($current_page, $pages_with_tables)):
+                    ?>
+                    <!-- Print Button -->
+                    <button class="btn btn-outline-light me-3" id="printButton" title="Print Page">
+                        <i class="bi bi-printer"></i>
+                    </button>
+                    <?php endif; ?>
+
                     <!-- Notifications Dropdown (Simplified) -->
                     <div class="dropdown me-3">
                         <a href="#" class="nav-link text-light position-relative notification-bell" id="notificationBell">
@@ -230,9 +260,16 @@ if ($user_role === 'resident') {
                     </div>
 
                     <!-- Profile Button -->
-                    <a href="profile.php" class="btn btn-outline-light">
-                        <i class="bi bi-person-circle"></i> <?php echo $full_name; ?>
-                    </a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile.php">
+                            <?php if (isset($user['profile_picture']) && !empty($user['profile_picture'])): ?>
+                                <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover; margin-right: 8px;">
+                            <?php else: ?>
+                                <i class="bi bi-person-circle"></i>
+                            <?php endif; ?>
+                            <?php echo htmlspecialchars($user['full_name'] ?? 'User'); ?>
+                        </a>
+                    </li>
                 </div>
             <?php endif; ?>
         </div>
@@ -396,3 +433,77 @@ if ($user_role === 'resident') {
         });
     }
     </script>
+
+    <!-- Add this before the closing </body> tag -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Print button functionality
+            document.getElementById('printButton').addEventListener('click', function() {
+                // Get the main content area (excluding header, sidebar, and footer)
+                const mainContent = document.querySelector('.container');
+                if (!mainContent) return;
+
+                // Clone the content to modify it for printing
+                const contentClone = mainContent.cloneNode(true);
+
+                // Handle charts
+                const charts = contentClone.querySelectorAll('canvas');
+                charts.forEach(chart => {
+                    // Convert chart to image
+                    const img = document.createElement('img');
+                    img.src = chart.toDataURL('image/png');
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.margin = '20px 0';
+                    
+                    // Replace canvas with image
+                    chart.parentNode.replaceChild(img, chart);
+                });
+
+                // Handle dashboard specific content
+                if (window.location.pathname.includes('dashboard.php')) {
+                    // Remove any action buttons or forms
+                    const buttons = contentClone.querySelectorAll('button, .btn, form');
+                    buttons.forEach(button => {
+                        if (!button.classList.contains('no-print')) {
+                            button.remove();
+                        }
+                    });
+                }
+
+                // Handle report issues specific content
+                if (window.location.pathname.includes('report_issue.php')) {
+                    // Remove the form if it exists
+                    const form = contentClone.querySelector('form');
+                    if (form) {
+                        form.remove();
+                    }
+                    
+                    // Add a title if it doesn't exist
+                    if (!contentClone.querySelector('h1, h2')) {
+                        const title = document.createElement('h2');
+                        title.textContent = 'Issue Report';
+                        contentClone.insertBefore(title, contentClone.firstChild);
+                    }
+                }
+
+                // Create a form to submit the content
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'print_page.php';
+
+                // Add the content as a hidden input
+                const contentInput = document.createElement('input');
+                contentInput.type = 'hidden';
+                contentInput.name = 'content';
+                contentInput.value = contentClone.innerHTML;
+
+                form.appendChild(contentInput);
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+            });
+        });
+    </script>
+</body>
+</html>

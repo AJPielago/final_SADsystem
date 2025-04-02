@@ -1510,4 +1510,3 @@ include 'includes/header.php';
         return array;
     }
 </script>
-<?php include 'includes/footer.php'; ?>

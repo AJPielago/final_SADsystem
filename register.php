@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'config/db.php';
+require 'includes/mailer.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $full_name = $_POST['full_name'];
@@ -10,6 +11,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $confirm_password = $_POST['confirm_password'];
     $building_id = $_POST['building_id'];
     $role = 'resident'; // Default role for registration
+
+    // Debug: Log registration attempt
+    error_log("Registration attempt for email: " . $email);
 
     // Validate password match
     if ($password !== $confirm_password) {
@@ -28,16 +32,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Hash password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Insert new user including phone_number
-            $sql = "INSERT INTO users (full_name, email, phone_number, password, role, building_id) VALUES (?, ?, ?, ?, ?, ?)";
+            // Insert new user with is_verified = 0
+            $sql = "INSERT INTO users (full_name, email, phone_number, password, role, building_id, is_verified) VALUES (?, ?, ?, ?, ?, ?, 0)";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("sssssi", $full_name, $email, $phone_number, $hashed_password, $role, $building_id);
 
             if ($stmt->execute()) {
-                $_SESSION['success'] = "Registration successful! Please login.";
-                header("Location: login.php");
-                exit();
+                // Generate OTP
+                $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+                $expires_at = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+                // Debug: Log OTP generation
+                error_log("Generated OTP: " . $otp . " for email: " . $email);
+                error_log("OTP expires at: " . $expires_at);
+
+                // Store OTP
+                $otp_sql = "INSERT INTO otp_verification (email, otp_code, expires_at) VALUES (?, ?, ?)";
+                $otp_stmt = $conn->prepare($otp_sql);
+                $otp_stmt->bind_param("sss", $email, $otp, $expires_at);
+
+                if ($otp_stmt->execute()) {
+                    // Debug: Log successful OTP storage
+                    error_log("OTP stored successfully in database");
+
+                    // Send verification email
+                    if (sendOTPEmail($email, $otp)) {
+                        error_log("Verification email sent successfully");
+                        $_SESSION['pending_email'] = $email;
+                        header("Location: verify_email.php");
+                        exit();
+                    } else {
+                        error_log("Failed to send verification email");
+                        $_SESSION['error'] = "Registration successful but failed to send verification email. Please contact support.";
+                        header("Location: login.php");
+                        exit();
+                    }
+                } else {
+                    error_log("Failed to store OTP in database: " . $otp_stmt->error);
+                    $_SESSION['error'] = "Registration successful but failed to generate verification code. Please contact support.";
+                    header("Location: login.php");
+                    exit();
+                }
             } else {
+                error_log("Failed to create user: " . $stmt->error);
                 $_SESSION['error'] = "Registration failed. Please try again.";
             }
         }
